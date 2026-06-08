@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Report 3PL Operations</title>
+  <style>
+    :root {
+      --primary: #1a56db;
+      --primary-light: #e8f0fe;
+      --success: #0f9d58;
+      --success-light: #e6f4ea;
+      --warning: #f29900;
+      --warning-light: #fef9e7;
+      --danger: #d93025;
+      --danger-light: #fce8e6;
+      --info: #1a73e8;
+      --info-light: #e8f0fe;
+      --neutral: #5f6368;
+      --neutral-light: #f1f3f4;
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --border: #e0e3e7;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(135deg, #1a56db 0%, #0d3fa3 100%);
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-icon { font-size: 28px; }
+    .header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.2px; }
+    .header .subtitle { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+    .header-right { text-align: right; font-size: 11px; opacity: 0.8; }
+    .header-right .date-big { font-size: 14px; font-weight: 600; opacity: 1; }
+
+    /* ─── FILTERS ─── */
+    .filters {
+      background: var(--surface);
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    select, input[type="date"] {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text);
+      background: var(--surface);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(26,86,219,0.15);
+    }
+    .filter-info {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: var(--neutral-light);
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    /* ─── KPI ROW ─── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      padding: 14px 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--primary);
+      box-shadow: var(--shadow);
+      transition: transform 0.15s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); }
+    .kpi-card.c-success { border-top-color: var(--success); }
+    .kpi-card.c-warning { border-top-color: var(--warning); }
+    .kpi-card.c-danger  { border-top-color: var(--danger); }
+    .kpi-card.c-info    { border-top-color: var(--info); }
+    .kpi-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; }
+    .kpi-value { font-size: 32px; font-weight: 800; color: var(--text); line-height: 1.1; margin: 4px 0 2px; }
+    .kpi-sub { font-size: 11px; color: var(--text-secondary); }
+
+    /* ─── TABS ─── */
+    .tabs-container {
+      background: var(--surface);
+      padding: 0 24px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 11px 18px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .tab:hover { color: var(--primary); background: var(--primary-light); border-radius: 6px 6px 0 0; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab .tab-count {
+      display: inline-block;
+      background: var(--neutral-light);
+      color: var(--neutral);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: 6px;
+    }
+    .tab.active .tab-count { background: var(--primary-light); color: var(--primary); }
+
+    /* ─── CONTENT ─── */
+    .content { padding: 16px 24px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ─── TABLE ─── */
+    .table-wrapper {
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    thead { background: #f8f9fb; }
+    th {
+      padding: 9px 12px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8f9fb; }
+
+    /* ─── BADGES ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-success { background: var(--success-light); color: #0a7042; }
+    .badge-warning { background: var(--warning-light); color: #b06b00; }
+    .badge-danger  { background: var(--danger-light);  color: #b02020; }
+    .badge-info    { background: var(--info-light);    color: #1557b0; }
+    .badge-neutral { background: var(--neutral-light); color: var(--neutral); }
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+
+    /* ─── STATES ─── */
+    .loading, .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-secondary);
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* ─── TABLE FOOTER ─── */
+    .table-footer {
+      padding: 8px 16px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .table-footer strong { color: var(--text); }
+
+    /* ─── SECTION HEADER ─── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 14px; font-weight: 700; }
+    .section-desc { font-size: 12px; color: var(--text-secondary); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .header { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .content { padding: 12px 12px; }
+      .filters { padding: 10px 12px; }
+      .kpi-row { padding: 12px 12px; }
+    }
+
+    /* ─── LEGEND ─── */
+    .legend {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+
+    /* ─── SUMMARY STATS BAR ─── */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      box-shadow: var(--shadow);
+    }
+    .stat-chip strong { color: var(--primary); font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">📦</div>
+    <div>
+      <h1>Daily Report 3PL Operations</h1>
+      <div class="subtitle">Transport Monitoring Dashboard · Multi-Site 3PL Operations</div>
+    </div>
+  </div>
+  <div class="header-right" style="display:flex;align-items:center;gap:12px">
+    <div style="text-align:right">
+      <div class="date-big" id="headerDate">—</div>
+      <div>Last update: <span id="lastLoaded">—</span></div>
+    </div>
+    <button id="refreshBtn" onclick="loadData()" title="Refresh data sekarang" style="
+      background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);
+      color:white;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;
+      display:flex;align-items:center;gap:6px;transition:background 0.2s;white-space:nowrap;
+    " onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+      <span id="refreshIcon">🔄</span> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="filter-group">
+    <label>📅 Stuffing Date</label>
+    <select id="dateFrom" onchange="applyFilters()">
+      <option value="">All</option>
+    </select>
+    <span style="color:var(--text-secondary);font-size:12px">–</span>
+    <select id="dateTo" onchange="applyFilters()">
+      <option value="">All</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>🏭 Supply Site</label>
+    <select id="siteFilter" onchange="applyFilters()">
+      <option value="">All Sites</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>🚛 Tipe Armada</label>
+    <select id="typeFilter" onchange="applyFilters()">
+      <option value="">All Types</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>📦 Type Delivery</label>
+    <select id="deliveryFilter" onchange="applyFilters()">
+      <option value="">All Delivery</option>
+    </select>
+  </div>
+  <div class="filter-info" id="filterInfo">Loading...</div>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Total LC</div>
+    <div class="kpi-value" id="kpi-total">—</div>
+    <div class="kpi-sub">LC hari ini</div>
+  </div>
+  <div class="kpi-card c-danger">
+    <div class="kpi-label">Belum Datang</div>
+    <div class="kpi-value" id="kpi-notyet">—</div>
+    <div class="kpi-sub">Belum checkin</div>
+  </div>
+  <div class="kpi-card c-warning">
+    <div class="kpi-label">Waiting Load</div>
+    <div class="kpi-value" id="kpi-waiting">—</div>
+    <div class="kpi-sub">Checkin, belum open</div>
+  </div>
+  <div class="kpi-card c-info">
+    <div class="kpi-label">On Loading</div>
+    <div class="kpi-value" id="kpi-loading">—</div>
+    <div class="kpi-sub">Sedang loading</div>
+  </div>
+  <div class="kpi-card c-success">
+    <div class="kpi-label">Selesai</div>
+    <div class="kpi-value" id="kpi-done">—</div>
+    <div class="kpi-sub">Sudah checkout</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs-container">
+  <div class="tab active" onclick="switchTab(0)">1. Create LC <span class="tab-count" id="tc-0">-</span></div>
+  <div class="tab" onclick="switchTab(1)">2. On Time Arrive <span class="tab-count" id="tc-1">-</span></div>
+  <div class="tab" onclick="switchTab(2)">3. Waiting to Load <span class="tab-count" id="tc-2">-</span></div>
+  <div class="tab" onclick="switchTab(3)">4. On Loading <span class="tab-count" id="tc-3">-</span></div>
+  <div class="tab" onclick="switchTab(4)">5. Performa Loading <span class="tab-count" id="tc-4">-</span></div>
+</div>
+
+<!-- PANELS -->
+<div class="content">
+
+  <!-- Panel 1: Create LC -->
+  <div class="panel active" id="panel-0">
+    <div class="section-header">
+      <span style="font-size:20px">📝</span>
+      <div>
+        <div class="section-title">Create LC</div>
+        <div class="section-desc">Penilaian H-N: berapa hari sebelum Stuffing Date LC ini dibuat</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="badge badge-success">H-3+</span> ≥3 hari sebelum</span>
+      <span class="legend-item"><span class="badge badge-info">H-2</span> 2 hari sebelum</span>
+      <span class="legend-item"><span class="badge badge-warning">H-1</span> 1 hari sebelum</span>
+      <span class="legend-item"><span class="badge badge-danger">H-0</span> Hari H / Telat</span>
+    </div>
+    <div class="table-wrapper" id="tbl-0">
+      <div class="loading"><div class="spinner"></div>Memuat data...</div>
+    </div>
+  </div>
+
+  <!-- Panel 2: On Time Arrive -->
+  <div class="panel" id="panel-1">
+    <div class="section-header">
+      <span style="font-size:20px">⏰</span>
+      <div>
+        <div class="section-title">On Time Arrive</div>
+        <div class="section-desc">Ketepatan kedatangan armada terhadap Stuffing Date. Negatif = datang lebih awal, Positif = terlambat</div>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="badge badge-success">Early</span> Checkin &lt; Stuffing</span>
+      <span class="legend-item"><span class="badge badge-danger">Late</span> Checkin &gt; Stuffing</span>
+      <span class="legend-item"><span class="badge badge-neutral">Belum Tiba</span> Belum checkin</span>
+    </div>
+    <div class="table-wrapper" id="tbl-1">
+      <div class="loading"><div class="spinner"></div>Memuat data...</div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Waiting to Load -->
+  <div class="panel" id="panel-2">
+    <div class="section-header">
+      <span style="font-size:20px">🕐</span>
+      <div>
+        <div class="section-title">Waiting to Load</div>
+        <div class="section-desc">
+          Durasi menunggu sebelum loading dimulai.<br>
+          <strong>Early arrival</strong>: dihitung dari Stuffing → Open &nbsp;|&nbsp;
+          <strong>Late arrival</strong>: dihitung dari Checkin → Open
+        </div>
+      </div>
+    </div>
+    <div class="table-wrapper" id="tbl-2">
+      <div class="loading"><div class="spinner"></div>Memuat data...</div>
+    </div>
+  </div>
+
+  <!-- Panel 4: On Loading -->
+  <div class="panel" id="panel-3">
+    <div class="section-header">
+      <span style="font-size:20px">🔄</span>
+      <div>
+        <div class="section-title">On Loading</div>
+        <div class="section-desc">Armada yang sudah mulai loading (Open terisi). Close kosong = masih loading sekarang</div>
+      </div>
+    </div>
+    <div class="table-wrapper" id="tbl-3">
+      <div class="loading"><div class="spinner"></div>Memuat data...</div>
+    </div>
+  </div>
+
+  <!-- Panel 5: Performa Loading -->
+  <div class="panel" id="panel-4">
+    <div class="section-header">
+      <span style="font-size:20px">📊</span>
+      <div>
+        <div class="section-title">Performa Loading</div>
+        <div class="section-desc">Status akhir semua LC — apakah sudah Checkout atau masih dalam proses</div>
+      </div>
+    </div>
+    <div class="stats-bar" id="performa-stats"></div>
+    <div class="table-wrapper" id="tbl-4">
+      <div class="loading"><div class="spinner"></div>Memuat data...</div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════════
+const MONTH_MAP = {
+  Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5,
+  Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11
+};
+
+// ══════════════════════════════════════════════════════════
+// DATE UTILITIES
+// ══════════════════════════════════════════════════════════
+function parseDate(str) {
+  if (!str || !str.trim()) return null;
+  // "29 May 2026, 13.42"
+  const m = str.trim().match(/^(\d{1,2})\s+(\w{3})\s+(\d{4}),\s*(\d{1,2})\.(\d{2})$/);
+  if (!m) return null;
+  return new Date(+m[3], MONTH_MAP[m[2]], +m[1], +m[4], +m[5], 0, 0);
+}
+
+function toInputDate(d) {
+  if (!d) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function fmtDT(d) {
+  if (!d) return '—';
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  const h  = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${dd} ${mo}, ${h}:${mi}`;
+}
+
+function diffHours(a, b) {
+  if (!a || !b) return null;
+  return (b - a) / 3_600_000;
+}
+
+function diffDays(a, b) {
+  if (!a || !b) return null;
+  return (b - a) / 86_400_000;
+}
+
+function fmtDuration(h, signed) {
+  if (h === null || h === undefined) return '—';
+  const sign = signed ? (h < 0 ? '−' : '+') : '';
+  const abs  = Math.abs(h);
+  const hr   = Math.floor(abs);
+  const min  = Math.round((abs - hr) * 60);
+  if (hr === 0) return `${sign}${min}m`;
+  return `${sign}${hr}j ${min}m`;
+}
+
+function now() { return new Date(); }
+
+// ══════════════════════════════════════════════════════════
+// CSV PARSER
+// ══════════════════════════════════════════════════════════
+function parseCSV(text) {
+  const lines = text.replace(/\r/g, '').trim().split('\n');
+  const rows  = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const fields = splitCSVLine(lines[i]);
+    if (fields.length < 10) continue;
+
+    const stuffing = parseDate(fields[8]);
+    if (!stuffing) continue;
+
+    const addDate = parseDate(fields[7]);
+    const checkin = parseDate(fields[10]);
+    const open    = parseDate(fields[11]);
+    const close   = parseDate(fields[12]);
+    const checkout= parseDate(fields[13]);
+
+    // ── Computed ──────────────────────────────────────────
+
+    // 1. Create LC: Stuffing − AddDate (days)
+    const createLCDays = diffDays(addDate, stuffing);
+
+    // 2. On Time Arrive: Checkin − Stuffing (hours)
+    const otaHours = checkin ? diffHours(stuffing, checkin) : null;
+
+    // 3. Waiting to Load
+    let waitHours = null;
+    let waitBasis = null;
+    if (open && checkin) {
+      if (checkin < stuffing) {
+        // Early: OPEN − STUFFING
+        waitHours = diffHours(stuffing, open);
+        waitBasis = 'Stuffing → Open';
+      } else {
+        // Late: OPEN − CHECKIN
+        waitHours = diffHours(checkin, open);
+        waitBasis = 'Checkin → Open';
+      }
+    }
+
+    // 4. On Loading: CLOSE − OPEN (or elapsed if still loading)
+    let loadingHours  = null;
+    let isOnLoading   = false;
+    if (open) {
+      if (close) {
+        loadingHours = diffHours(open, close);
+        isOnLoading  = false;
+      } else {
+        loadingHours = diffHours(open, now());
+        isOnLoading  = true;
+      }
+    }
+
+    rows.push({
+      no:           fields[0],
+      site:         fields[1],
+      lc:           fields[2],
+      vendor:       fields[3],
+      nopol:        fields[4].replace(/\.+$/, '').replace(/,/g, '').trim(),
+      type:         fields[5],
+      tujuan:       fields[6],
+      addDate, stuffing, checkin, open, close, checkout,
+      typeLc:       (fields[14] || '').trim(),
+      typeDelivery: (fields[15] || '').trim(),
+      // Computed
+      createLCDays, otaHours,
+      waitHours, waitBasis,
+      loadingHours, isOnLoading,
+      isDone: !!checkout,
+    });
+  }
+  return rows;
+}
+
+function splitCSVLine(line) {
+  const fields = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+    else { cur += c; }
+  }
+  fields.push(cur.trim());
+  return fields;
+}
+
+// ══════════════════════════════════════════════════════════
+// BADGE HELPERS
+// ══════════════════════════════════════════════════════════
+function bdg(text, type) {
+  return `<span class="badge badge-${type}">${text}</span>`;
+}
+
+function bdgHours(h, signed) {
+  if (h === null) return bdg('—', 'neutral');
+  const lbl = fmtDuration(h, signed);
+  if (!signed) {
+    // duration: negative = started early (good), 0-1h green, 1-3h yellow, ≥3h orange/red
+    if (h < 0) return bdg('Early Start', 'success');
+    const t = h < 1 ? 'success' : h < 3 ? 'warning' : h < 6 ? 'warning' : 'danger';
+    return bdg(lbl, t);
+  } else {
+    // signed: negative = early = good, positive = late = bad
+    return h <= 0 ? bdg(lbl, 'success') : bdg(lbl, 'danger');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════════════
+function makeTable(headers, rows, emptyMsg) {
+  if (!rows || rows.length === 0) {
+    return `<div class="empty"><div class="empty-icon">📭</div><div>${emptyMsg || 'Tidak ada data untuk filter ini'}</div></div>`;
+  }
+  const th = headers.map(h => `<th>${h}</th>`).join('');
+  const tr = rows.map(r => `<tr>${r.map(c => `<td>${c ?? '—'}</td>`).join('')}</tr>`).join('');
+  return `<table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>`;
+}
+
+function makeFooter(stats) {
+  const parts = stats.map(s => `<span>${s.label}: <strong>${s.val}</strong></span>`);
+  return `<div class="table-footer">${parts.join('')}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 5 STAGE RENDERERS
+// ══════════════════════════════════════════════════════════
+
+function renderCreateLC(data) {
+  const rows = data.map(r => {
+    const days = r.createLCDays;
+    let lbl, type;
+    if (days === null) { lbl = '—'; type = 'neutral'; }
+    else {
+      const d = Math.floor(days);
+      lbl  = `H-${d}`;
+      type = d >= 3 ? 'success' : d === 2 ? 'info' : d === 1 ? 'warning' : 'danger';
+    }
+    return [
+      r.site, r.lc, r.vendor, r.nopol || '—', r.type, r.tujuan,
+      fmtDT(r.addDate), fmtDT(r.stuffing), bdg(lbl, type)
+    ];
+  });
+
+  const onTime = data.filter(r => r.createLCDays !== null && Math.floor(r.createLCDays) >= 2).length;
+  const late   = data.filter(r => r.createLCDays !== null && Math.floor(r.createLCDays) < 2).length;
+
+  return makeTable(
+    ['Site','LC','Vendor','Nopol','Tipe','Tujuan','Add Date','Stuffing','H-N'],
+    rows, 'Tidak ada LC'
+  ) + makeFooter([
+    { label: 'Total', val: data.length },
+    { label: 'H-2 ke atas', val: onTime },
+    { label: 'H-1 / H-0', val: late },
+  ]);
+}
+
+function renderOTA(data) {
+  // Show all: arrived & not yet
+  const rows = data.map(r => {
+    let statusBdg;
+    if (!r.checkin) {
+      statusBdg = bdg('Belum Tiba', 'neutral');
+    } else if (r.otaHours <= 0) {
+      statusBdg = `${bdg('Early', 'success')} ${bdgHours(r.otaHours, true)}`;
+    } else {
+      statusBdg = `${bdg('Late', 'danger')} ${bdgHours(r.otaHours, true)}`;
+    }
+    return [
+      r.site, r.lc, r.vendor, r.nopol || '—', r.tujuan,
+      fmtDT(r.stuffing), fmtDT(r.checkin), statusBdg
+    ];
+  });
+
+  const arrived = data.filter(r => r.checkin).length;
+  const early   = data.filter(r => r.checkin && r.otaHours <= 0).length;
+  const late    = data.filter(r => r.checkin && r.otaHours > 0).length;
+  const notyet  = data.filter(r => !r.checkin).length;
+
+  return makeTable(
+    ['Site','LC','Vendor','Nopol','Tujuan','Stuffing','Checkin','Status Arrive'],
+    rows, 'Tidak ada data'
+  ) + makeFooter([
+    { label: 'Total', val: data.length },
+    { label: 'Sudah Tiba', val: arrived },
+    { label: 'Early', val: early },
+    { label: 'Late', val: late },
+    { label: 'Belum Tiba', val: notyet },
+  ]);
+}
+
+function renderWTL(data) {
+  const eligible = data.filter(r => r.checkin && r.open);
+
+  const rows = eligible.map(r => {
+    const isEarly = r.checkin < r.stuffing;
+    return [
+      r.site, r.lc, r.vendor, r.nopol || '—', r.tujuan,
+      fmtDT(r.stuffing), fmtDT(r.checkin), fmtDT(r.open),
+      isEarly ? bdg('Early', 'success') : bdg('Late', 'danger'),
+      `<span style="font-size:11px;color:var(--text-secondary)">${r.waitBasis || '—'}</span>`,
+      bdgHours(r.waitHours, false),
+    ];
+  });
+
+  const avgWait = eligible.length
+    ? eligible.reduce((s, r) => s + (r.waitHours || 0), 0) / eligible.length
+    : null;
+
+  const waiting = data.filter(r => r.checkin && !r.open).length;
+
+  return makeTable(
+    ['Site','LC','Vendor','Nopol','Tujuan','Stuffing','Checkin','Open','Arrive Status','Basis Hitung','Waiting Duration'],
+    rows, 'Belum ada armada yang mulai loading'
+  ) + makeFooter([
+    { label: 'Sudah Open', val: eligible.length },
+    { label: 'Masih Menunggu', val: waiting },
+    { label: 'Avg Waiting', val: avgWait !== null ? fmtDuration(avgWait, false) : '—' },
+  ]);
+}
+
+function renderOnLoading(data) {
+  const eligible = data.filter(r => r.open);
+
+  const rows = eligible.map(r => {
+    const statusBdg = r.isOnLoading
+      ? bdg('🔄 On Loading', 'info')
+      : bdg('✅ Selesai', 'success');
+
+    const durBdg = r.isOnLoading
+      ? `${bdgHours(r.loadingHours, false)} <span style="font-size:10px;color:var(--text-secondary)">(elapsed)</span>`
+      : bdgHours(r.loadingHours, false);
+
+    const closeCell = r.isOnLoading
+      ? `<em style="color:var(--text-secondary);font-size:11px">Sedang loading…</em>`
+      : fmtDT(r.close);
+
+    return [
+      r.site, r.lc, r.vendor, r.nopol || '—', r.tujuan,
+      fmtDT(r.open), closeCell, statusBdg, durBdg
+    ];
+  });
+
+  const onLoading = eligible.filter(r => r.isOnLoading).length;
+  const done      = eligible.filter(r => !r.isOnLoading).length;
+
+  return makeTable(
+    ['Site','LC','Vendor','Nopol','Tujuan','Open','Close','Status','Durasi Loading'],
+    rows, 'Belum ada armada yang open'
+  ) + makeFooter([
+    { label: 'Total Open', val: eligible.length },
+    { label: 'On Loading', val: onLoading },
+    { label: 'Selesai Loading', val: done },
+  ]);
+}
+
+function renderPerforma(data) {
+  const rows = data.map(r => {
+    let status;
+    if (r.checkout)             status = bdg('✅ Done', 'success');
+    else if (r.close)           status = bdg('⏳ Waiting Checkout', 'warning');
+    else if (r.open)            status = bdg('🔄 On Loading', 'info');
+    else if (r.checkin)         status = bdg('🕐 Waiting Load', 'warning');
+    else                        status = bdg('❌ Belum Tiba', 'danger');
+
+    const loadDur = (r.close && r.open) ? bdgHours(diffHours(r.open, r.close), false) : bdg('—','neutral');
+
+    return [
+      r.site, r.lc, r.vendor, r.nopol || '—', r.type || '—', r.tujuan,
+      fmtDT(r.open), fmtDT(r.close), fmtDT(r.checkout),
+      loadDur, status
+    ];
+  });
+
+  const done        = data.filter(r => r.checkout).length;
+  const waitCO      = data.filter(r => r.close && !r.checkout).length;
+  const onLoading   = data.filter(r => r.open && !r.close).length;
+  const waitLoad    = data.filter(r => r.checkin && !r.open).length;
+  const notArrived  = data.filter(r => !r.checkin).length;
+  const pct         = data.length ? Math.round((done / data.length) * 100) : 0;
+
+  // Stats chips for performa
+  document.getElementById('performa-stats').innerHTML = `
+    <div class="stat-chip">Total LC: <strong>${data.length}</strong></div>
+    <div class="stat-chip" style="border-color:var(--success)">Done: <strong style="color:var(--success)">${done}</strong></div>
+    <div class="stat-chip" style="border-color:var(--warning)">Waiting Checkout: <strong style="color:var(--warning)">${waitCO}</strong></div>
+    <div class="stat-chip" style="border-color:var(--info)">On Loading: <strong style="color:var(--info)">${onLoading}</strong></div>
+    <div class="stat-chip" style="border-color:var(--warning)">Waiting Load: <strong style="color:var(--warning)">${waitLoad}</strong></div>
+    <div class="stat-chip" style="border-color:var(--danger)">Belum Tiba: <strong style="color:var(--danger)">${notArrived}</strong></div>
+    <div class="stat-chip" style="border-color:var(--primary)">Completion: <strong style="color:var(--primary)">${pct}%</strong></div>
+  `;
+
+  return makeTable(
+    ['Site','LC','Vendor','Nopol','Type Armada','Tujuan','Open','Close','Checkout','Durasi Loading','Status'],
+    rows, 'Tidak ada data'
+  ) + makeFooter([
+    { label: 'Total', val: data.length },
+    { label: 'Done', val: done },
+    { label: 'Belum Selesai', val: data.length - done },
+    { label: 'Completion Rate', val: `${pct}%` },
+  ]);
+}
+
+// ══════════════════════════════════════════════════════════
+// FILTER & STATE
+// ══════════════════════════════════════════════════════════
+let allData     = [];
+let filtered    = [];
+let currentTab  = 0;
+
+function updateDropdown(id, values, currentVal) {
+  const labels = { siteFilter: 'All Sites', typeFilter: 'All Types', deliveryFilter: 'All Delivery' };
+  const sel = document.getElementById(id);
+  sel.innerHTML = `<option value="">${labels[id] || 'All'}</option>`;
+  values.forEach(v => {
+    const opt = new Option(v, v);
+    if (v === currentVal) opt.selected = true;
+    sel.add(opt);
+  });
+  if (currentVal && !values.includes(currentVal)) sel.value = '';
+}
+
+function inDateRange(r, fromVal, toVal) {
+  const d = toInputDate(r.stuffing);
+  if (fromVal && d < fromVal) return false;
+  if (toVal   && d > toVal)   return false;
+  return true;
+}
+
+function applyFilters() {
+  const fromVal     = document.getElementById('dateFrom').value;
+  const toVal       = document.getElementById('dateTo').value;
+  const siteVal     = document.getElementById('siteFilter').value;
+  const typeVal     = document.getElementById('typeFilter').value;
+  const deliveryVal = document.getElementById('deliveryFilter').value;
+
+  // Main filter (all combined)
+  filtered = allData.filter(r =>
+    inDateRange(r, fromVal, toVal)
+    && (!siteVal     || r.site         === siteVal)
+    && (!typeVal     || r.type         === typeVal)
+    && (!deliveryVal || r.typeDelivery === deliveryVal)
+  );
+
+  // Cascading: Site (date+type+delivery, no site)
+  const forSite = allData.filter(r => inDateRange(r, fromVal, toVal)
+    && (!typeVal || r.type === typeVal) && (!deliveryVal || r.typeDelivery === deliveryVal));
+  updateDropdown('siteFilter', [...new Set(forSite.map(r => r.site))].sort(), siteVal);
+
+  // Cascading: Type (date+site+delivery, no type)
+  const forType = allData.filter(r => inDateRange(r, fromVal, toVal)
+    && (!siteVal || r.site === siteVal) && (!deliveryVal || r.typeDelivery === deliveryVal));
+  updateDropdown('typeFilter', [...new Set(forType.map(r => r.type).filter(Boolean))].sort(), typeVal);
+
+  // Cascading: Delivery (date+site+type, no delivery)
+  const forDelivery = allData.filter(r => inDateRange(r, fromVal, toVal)
+    && (!siteVal || r.site === siteVal) && (!typeVal || r.type === typeVal));
+  updateDropdown('deliveryFilter', [...new Set(forDelivery.map(r => r.typeDelivery).filter(Boolean))].sort(), deliveryVal);
+
+  updateKPIs();
+  updateTabCounts();
+  renderActive();
+  document.getElementById('filterInfo').textContent = `${filtered.length} LC ditemukan`;
+}
+
+function renderAll() {
+  renderTab(0); renderTab(1); renderTab(2); renderTab(3); renderTab(4);
+}
+
+function renderActive() {
+  renderTab(currentTab);
+}
+
+function renderTab(idx) {
+  const id = `tbl-${idx}`;
+  const el = document.getElementById(id);
+  if (!el) return;
+  switch(idx) {
+    case 0: el.innerHTML = renderCreateLC(filtered); break;
+    case 1: el.innerHTML = renderOTA(filtered); break;
+    case 2: el.innerHTML = renderWTL(filtered); break;
+    case 3: el.innerHTML = renderOnLoading(filtered); break;
+    case 4: el.innerHTML = renderPerforma(filtered); break;
+  }
+}
+
+function updateKPIs() {
+  const total    = filtered.length;
+  const notyet   = filtered.filter(r => !r.checkin).length;
+  const waiting  = filtered.filter(r => r.checkin && !r.open).length;
+  const loading  = filtered.filter(r => r.open && !r.close).length;
+  const done     = filtered.filter(r => r.checkout).length;
+
+  document.getElementById('kpi-total').textContent   = total;
+  document.getElementById('kpi-notyet').textContent  = notyet;
+  document.getElementById('kpi-waiting').textContent = waiting;
+  document.getElementById('kpi-loading').textContent = loading;
+  document.getElementById('kpi-done').textContent    = done;
+}
+
+function updateTabCounts() {
+  const counts = [
+    filtered.length,
+    filtered.filter(r => r.checkin).length,
+    filtered.filter(r => r.checkin && r.open).length,
+    filtered.filter(r => r.open).length,
+    filtered.length,
+  ];
+  counts.forEach((c, i) => {
+    const el = document.getElementById(`tc-${i}`);
+    if (el) el.textContent = c;
+  });
+}
+
+function switchTab(idx) {
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+  currentTab = idx;
+  renderTab(idx);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5QT90-CFVohqOXsIW3zxEGWyXn-5Z4X95EfyaZ9NTAgeTq8_ZLMNo8LBtnUjhTcLYKu7dyM754vm8/pub?output=csv';
+const AUTO_REFRESH = 5; // menit
+let   isFirstLoad  = true;
+
+function setRefreshBtnState(loading) {
+  const btn  = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.disabled  = loading;
+  icon.textContent = loading ? '⏳' : '🔄';
+}
+
+async function loadData() {
+  setRefreshBtnState(true);
+  const today = new Date();
+
+  // Update header date (only on first load)
+  if (isFirstLoad) {
+    document.getElementById('headerDate').textContent = today.toLocaleDateString('id-ID', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+  }
+
+  try {
+    const res = await fetch(SHEET_URL + '&t=' + Date.now()); // cache-bust
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    // Save current filter selections before re-populating
+    const prevFrom = document.getElementById('dateFrom').value;
+    const prevTo   = document.getElementById('dateTo').value;
+
+    allData = parseCSV(text);
+
+    // Re-populate date dropdowns, preserve selection
+    const dates    = [...new Set(allData.map(r => toInputDate(r.stuffing)).filter(Boolean))].sort();
+    const todayStr = toInputDate(today);
+
+    function populateDateSelect(id, preferred) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '<option value="">All</option>';
+      dates.forEach(d => {
+        const dt  = new Date(d + 'T00:00:00');
+        const lbl = dt.toLocaleDateString('id-ID', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+        sel.add(new Option(lbl, d));
+      });
+      const fallback = id === 'dateFrom' ? dates[0] : dates[dates.length - 1];
+      sel.value = dates.includes(preferred) ? preferred : (fallback || '');
+    }
+
+    if (isFirstLoad) {
+      // First load: default to today
+      populateDateSelect('dateFrom', todayStr);
+      populateDateSelect('dateTo',   todayStr);
+      isFirstLoad = false;
+    } else {
+      // Subsequent: preserve user's selection
+      populateDateSelect('dateFrom', prevFrom);
+      populateDateSelect('dateTo',   prevTo);
+    }
+
+    applyFilters();
+
+    document.getElementById('lastLoaded').textContent =
+      today.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) +
+      ` · auto ↻${AUTO_REFRESH}m`;
+    document.getElementById('filterInfo').textContent = `${filtered.length} LC ditemukan`;
+
+  } catch (e) {
+    console.error(e);
+    document.getElementById('filterInfo').textContent = '⚠️ Gagal fetch data';
+  }
+
+  setRefreshBtnState(false);
+}
+
+function init() {
+  // Update header date immediately
+  const today = new Date();
+  document.getElementById('headerDate').textContent = today.toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+  loadData();
+}
+
+init();
+
+// Auto-refresh every N menit
+setInterval(loadData, AUTO_REFRESH * 60 * 1000);
+
+// Re-render On Loading elapsed time every minute
+setInterval(() => {
+  if (currentTab === 3 || currentTab === 4) renderTab(currentTab);
+}, 5 * 60 * 1000);
+</script>
+</body>
+</html>
